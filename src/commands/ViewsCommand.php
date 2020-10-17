@@ -8,6 +8,8 @@ use Illuminate\Filesystem\Filesystem;
 use Laravel\Nova\Console\Concerns\AcceptsNameAndVendor;
 use Laravel\Nova\Nova;
 use Symfony\Component\Process\Process;
+use Symfony\Component\Console\Output\OutputInterface;
+
 
 class ViewsCommand extends Command
 {
@@ -179,7 +181,7 @@ class ViewsCommand extends Command
      */
     protected function installNpmDependencies()
     {
-        $this->runCommand('npm set progress=false && npm install', $this->viewsPath());
+        $this->runCommand('npm install', $this->viewsPath(), $this->output);
     }
 
     /**
@@ -189,7 +191,7 @@ class ViewsCommand extends Command
      */
     protected function compile()
     {
-        $this->runCommand('npm run dev', $this->viewsPath());
+        $this->runCommand('npm run dev', $this->viewsPath(), $this->output);
     }
 
     /**
@@ -199,7 +201,7 @@ class ViewsCommand extends Command
      */
     protected function composerUpdate()
     {
-        $this->runCommand('composer update', getcwd());
+        $this->runCommand('composer update', getcwd(), $this->output);
     }
 
     /**
@@ -209,9 +211,9 @@ class ViewsCommand extends Command
      * @param  string  $path
      * @return void
      */
-    protected function runCommand($command, $path)
+    protected function runCommand($command, $path, OutputInterface $output)
     {
-        $process = (new Process($command, $path))->setTimeout(null);
+        $process = (new Process(explode(' ', $command), $path))->setTimeout(null);
 
         if ('\\' !== DIRECTORY_SEPARATOR && file_exists('/dev/tty') && is_readable('/dev/tty')) {
             $process->setTty(true);
